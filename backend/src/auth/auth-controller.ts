@@ -17,21 +17,21 @@ class AuthController {
     } catch (err) {
       res.status(500).json({ message: 'Error registering user' });
     }
-  };
+  }
 
   loginUser = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { username, password } = req.body;
-      const result = await this.authService.loginUser(username, password);
+      const { email, password } = req.body;
+      const result = await this.authService.loginUser(email, password);
       if (!result) {
-        res.status(401).json({ message: 'Invalid username or password' });
+        res.status(401).json({ message: 'Invalid email or password' });
         return;
       }
       res.status(200).json(result);
     } catch (err) {
       res.status(500).json({ message: 'Error logging in' });
     }
-  };
+  }
 
   refreshToken = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -45,7 +45,7 @@ class AuthController {
     } catch (err) {
       res.status(500).json({ message: 'Error refreshing token' });
     }
-  };
+  }
 }
 
 export default AuthController;

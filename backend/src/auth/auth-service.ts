@@ -13,10 +13,11 @@ class AuthService {
   private readonly jwtRefreshSecret = process.env.JWT_REFRESH_SECRET!;
 
   async registerUser(createUserDto: CreateUserDto): Promise<IUser> {
-    const { password, username } = createUserDto;
+    const { email, password, username } = createUserDto;
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = new UserModel({
+      email,
       username,
       password: hashedPassword,
     });
@@ -25,15 +26,8 @@ class AuthService {
     return newUser;
   }
 
-  async loginUser(
-    username: string,
-    password: string
-  ): Promise<{
-    user: IUser;
-    accessToken: string;
-    refreshToken: string;
-  } | null> {
-    const user = await UserModel.findOne({ username });
+  async loginUser(email: string, password: string): Promise<{ user: IUser, accessToken: string, refreshToken: string } | null> {
+    const user = await UserModel.findOne({ email });
     if (!user) return null;
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
@@ -42,25 +36,18 @@ class AuthService {
     const accessToken = this.generateJwt(user);
     const refreshToken = this.generateRefreshToken(user);
 
-    const refreshTokenDoc = new RefreshTokenModel({
-      token: refreshToken,
-      user: user._id,
-    });
+    const refreshTokenDoc = new RefreshTokenModel({ token: refreshToken, user: user._id });
     await refreshTokenDoc.save();
 
     return { user, accessToken, refreshToken };
   }
 
   private generateJwt(user: IUser): string {
-    return jwt.sign({ id: user._id }, this.jwtSecret, {
-      expiresIn: '1h',
-    });
+    return jwt.sign({ id: user._id, email: user.email }, this.jwtSecret, { expiresIn: '1h' });
   }
 
   private generateRefreshToken(user: IUser): string {
-    return jwt.sign({ id: user._id }, this.jwtRefreshSecret, {
-      expiresIn: '7d',
-    });
+    return jwt.sign({ id: user._id, email: user.email }, this.jwtRefreshSecret, { expiresIn: '7d' });
   }
 
   verifyJwt(token: string): any {
@@ -79,9 +66,7 @@ class AuthService {
     }
   }
 
-  async refreshToken(
-    oldToken: string
-  ): Promise<{ accessToken: string; refreshToken: string } | null> {
+  async refreshToken(oldToken: string): Promise<{ accessToken: string, refreshToken: string } | null> {
     const payload = this.verifyRefreshToken(oldToken);
     if (!payload) return null;
 
@@ -91,10 +76,7 @@ class AuthService {
     const newAccessToken = this.generateJwt(user);
     const newRefreshToken = this.generateRefreshToken(user);
 
-    const refreshTokenDoc = new RefreshTokenModel({
-      token: newRefreshToken,
-      user: user._id,
-    });
+    const refreshTokenDoc = new RefreshTokenModel({ token: newRefreshToken, user: user._id });
     await refreshTokenDoc.save();
 
     await RefreshTokenModel.deleteOne({ token: oldToken });
