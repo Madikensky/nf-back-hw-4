@@ -13,8 +13,7 @@ export const Home = () => {
       <Header setShowSidebar={setShowSidebar} />
       <Sidebar showSidebar={showSidebar} setShowSidebar={setShowSidebar} />
       <div className="bg-custom-section pt-28 md:pl-72 p-8">
-        <Artistsection></Artistsection>
-        <Playlistsection></Playlistsection>
+        <div className="h-screen"></div>
         <Footer></Footer>
       </div>
     </div>

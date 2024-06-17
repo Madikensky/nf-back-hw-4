@@ -14,6 +14,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/s3-request-presigner": "^3.598.0",
+    "@types/aws-sdk": "^2.7.0",
+    "@types/multer": "^1.4.11",
+    "@types/multer-s3": "^3.0.3",
+    "@types/node": "^20.14.2",
+    "@types/uuid": "^9.0.8",
+    "aws-sdk": "^2.1642.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
@@ -23,8 +30,13 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.4.1",
     "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "multer-s3": "^3.0.1",
     "passport": "^0.7.0",
-    "session": "^0.1.0"
+    "prisma": "^5.15.0",
+    "session": "^0.1.0",
+    "sharp": "^0.33.4",
+    "uuid": "^10.0.0"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
