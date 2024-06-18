@@ -1,9 +1,10 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Document, Schema, Types } from 'mongoose';
 
 export interface ISong extends Document {
   title: string;
   author: string;
   song_cover: string;
+  song_cover_url: string;
 }
 
 const SongSchema: Schema = new Schema({
@@ -19,6 +20,7 @@ const SongSchema: Schema = new Schema({
     type: String,
     required: true,
   },
+  song_cover_url: { type: String, required: true },
 });
 
 const Song = mongoose.model<ISong>('Song', SongSchema);

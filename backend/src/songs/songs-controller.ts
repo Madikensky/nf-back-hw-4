@@ -4,6 +4,7 @@ import {
   S3Client,
   PutObjectCommand,
   GetObjectCommand,
+  DeleteObjectCommand,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import dotenv from 'dotenv';
@@ -71,22 +72,79 @@ export const createSong = async (req: Request, res: Response) => {
 export const getSongs = async (req: Request, res: Response) => {
   try {
     const songs = await Song.find().sort({ createdAt: 1 });
-    const songsWithSignedUrls = await Promise.all(
-      songs.map(async (song) => {
-        const getObjectParams = {
-          Bucket: bucketName,
-          Key: `${folderName}/${song.song_cover}`,
-        };
-        const command = new GetObjectCommand(getObjectParams);
-        const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
-        return {
-          ...song.toObject(),
-          song_cover_url: url,
-        };
-      })
-    );
-    res.send(songsWithSignedUrls);
+    res.send(songs);
   } catch (error) {
     res.status(500).send('Error while getting the data..');
+  }
+};
+
+export const deleteSong = async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  try {
+    const song = await Song.findByIdAndDelete(id);
+    if (!song) {
+      return res.status(400).send('Song not found');
+    }
+
+    const deleteParams = {
+      Bucket: bucketName,
+      Key: `${folderName}/${song.song_cover}`,
+    };
+
+    const deleteCommand = new DeleteObjectCommand(deleteParams);
+    await s3.send(deleteCommand);
+
+    res.send({ message: 'Song deleted' });
+  } catch (e) {
+    res.status(500).send('Errors while deleting a song..');
+  }
+};
+
+export const updateSong = async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  try {
+    let updateData = {
+      ...req.body,
+    };
+
+    if (req.file) {
+      const imgName = randomImageName();
+      const filePath = `${folderName}/${imgName}`;
+
+      const params = {
+        Bucket: bucketName,
+        Key: filePath,
+        Body: req.file.buffer,
+        ContentType: req.file.mimetype,
+      };
+
+      const command = new PutObjectCommand(params);
+      await s3.send(command);
+
+      const getObjectParams = {
+        Bucket: bucketName,
+        Key: filePath,
+      };
+
+      const signedUrl = await getSignedUrl(
+        s3,
+        new GetObjectCommand(getObjectParams),
+        { expiresIn: 3600 }
+      );
+      updateData.song_cover = imgName;
+      updateData.song_cover_url = signedUrl;
+    }
+
+    const filter = { _id: id };
+    let song = await Song.findOneAndUpdate(filter, updateData, { new: true });
+
+    if (!song) {
+      return res.status(400).send('Song not found');
+    }
+    res.send(updateData);
+  } catch (e) {
+    res.status(500).send('Errors when updating a song');
   }
 };
