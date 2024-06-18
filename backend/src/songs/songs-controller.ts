@@ -5,6 +5,7 @@ import {
   PutObjectCommand,
   GetObjectCommand,
   DeleteObjectCommand,
+  ObjectCannedACL,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import dotenv from 'dotenv';
@@ -38,6 +39,7 @@ export const createSong = async (req: Request, res: Response) => {
     Key: filePath,
     Body: req.file?.buffer,
     ContentType: req.file?.mimetype,
+    ACL: 'public-read' as ObjectCannedACL,
   };
 
   const command = new PutObjectCommand(params);
@@ -105,6 +107,7 @@ export const updateSong = async (req: Request, res: Response) => {
   const { id } = req.params;
 
   try {
+    const existingSong = await Song.findById(id);
     let updateData = {
       ...req.body,
     };
@@ -135,6 +138,15 @@ export const updateSong = async (req: Request, res: Response) => {
       );
       updateData.song_cover = imgName;
       updateData.song_cover_url = signedUrl;
+
+      if (existingSong?.song_cover) {
+        const deleteParams = {
+          Bucket: bucketName,
+          Key: `${folderName}/${existingSong.song_cover}`,
+        };
+        const deleteCommand = new DeleteObjectCommand(deleteParams);
+        await s3.send(deleteCommand);
+      }
     }
 
     const filter = { _id: id };
