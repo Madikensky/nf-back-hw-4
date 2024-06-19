@@ -134,7 +134,7 @@ export const updateSong = async (req: Request, res: Response) => {
       const signedUrl = await getSignedUrl(
         s3,
         new GetObjectCommand(getObjectParams),
-        { expiresIn: 3600 }
+        { expiresIn: Infinity }
       );
       updateData.song_cover = imgName;
       updateData.song_cover_url = signedUrl;

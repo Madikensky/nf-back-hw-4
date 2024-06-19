@@ -36,8 +36,12 @@ export const AddSong = () => {
 
     axios
       .post('http://localhost:5001/api/v1/create_song', formData)
-      .then((e) => console.log(e.data));
+      .then((e) => {
+        console.log(e.data);
+        window.location.reload();
+      });
   };
+
   return (
     <form action="" className="flex flex-col gap-5" onSubmit={uploadSong}>
       <input

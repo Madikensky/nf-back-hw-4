@@ -33,12 +33,6 @@ export const Home = () => {
                 key={song._id}
               />
             ))}
-            {/* <Song />
-            <Song />
-            <Song />
-            <Song />
-            <Song />
-            <Song /> */}
           </div>
         </div>
         <Footer></Footer>
